@@ -26,9 +26,10 @@ namespace MoviesBot
         /// Creates an instance of the secrets class by reading data from a json file.
         /// </summary>
         /// <returns>SecretsKeeper or null</returns>
-        public static SecretsKeeper? Create()
+        public static SecretsKeeper Create()
         {
-            SecretsKeeper? sk = new SecretsKeeper();
+            SecretsKeeper sk = new SecretsKeeper();
+
             using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory()}\\{SECRETS_FILE_NAME}"))
             {
                 string data = sr.ReadToEnd();
