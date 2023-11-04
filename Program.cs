@@ -9,6 +9,7 @@ namespace MoviesBot
         private static SecretsKeeper _secrets;
         private static TelegramBotClient _bot;
         private static ReceiverOptions _receiverOptions;
+        private static BotContext _ctx;
 
         public static async Task Main(string[] args)
         {
@@ -22,6 +23,7 @@ namespace MoviesBot
                 },
                 ThrowPendingUpdates = true,
             };
+            _ctx = new BotContext();
 
             var cts = new CancellationTokenSource();
 
