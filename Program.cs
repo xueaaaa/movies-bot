@@ -23,13 +23,14 @@ namespace MoviesBot
                 ThrowPendingUpdates = true,
             };
 
-            using var cts = new CancellationTokenSource();
+            var cts = new CancellationTokenSource();
 
             _bot.StartReceiving(Handlers.Update, Handlers.Error, _receiverOptions, cts.Token);
+
+            var me = await _bot.GetMeAsync();
+            Logger.Print(new Log($"{me.FirstName} successfully launched", LogLevel.Info));
 
             await Task.Delay(-1);
         }
     }
 }
-
-
