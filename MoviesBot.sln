@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoviesBot", "MoviesBot.csproj", "{4C702EE8-B4FC-4FDA-BC6C-C4A23DF7B532}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C702EE8-B4FC-4FDA-BC6C-C4A23DF7B532}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C702EE8-B4FC-4FDA-BC6C-C4A23DF7B532}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C702EE8-B4FC-4FDA-BC6C-C4A23DF7B532}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C702EE8-B4FC-4FDA-BC6C-C4A23DF7B532}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D107219C-0699-421D-A60D-1F397476E7BB}
+	EndGlobalSection
+EndGlobal
