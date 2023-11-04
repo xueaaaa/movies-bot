@@ -29,7 +29,7 @@
             switch (log.Type)
             {
                 case LogLevel.Info:
-                    Console.Write("INFO:");
+                    Console.Write("INFO: ");
                     break;
                 case LogLevel.Warn:
                     Console.Write("WARNING: ");
