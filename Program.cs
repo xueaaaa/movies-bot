@@ -6,15 +6,15 @@ namespace MoviesBot
 {
     class Program
     {
-        private static SecretsKeeper _secrets;
+        public static SecretsKeeper Secrets;
         private static TelegramBotClient _bot;
         private static ReceiverOptions _receiverOptions;
-        private static BotContext _ctx;
+        public static BotContext Ctx;
 
         public static async Task Main(string[] args)
-        {
-            _secrets = SecretsKeeper.Create();
-            _bot = new TelegramBotClient(_secrets.APIToken);
+        { 
+            Secrets = SecretsKeeper.Create();
+            _bot = new TelegramBotClient(Secrets.APIToken);
             _receiverOptions = new ReceiverOptions
             {
                 AllowedUpdates = new[]
@@ -23,7 +23,7 @@ namespace MoviesBot
                 },
                 ThrowPendingUpdates = true,
             };
-            _ctx = new BotContext();
+            Ctx = new BotContext();
 
             var cts = new CancellationTokenSource();
 

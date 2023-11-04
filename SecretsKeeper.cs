@@ -16,6 +16,11 @@ namespace MoviesBot
         [JsonPropertyName("api_token")] public string APIToken { get; set; }
 
         /// <summary>
+        /// Identifier of the channel to which subscription is required (in @aaaa format)
+        /// </summary>
+        [JsonPropertyName("channel_id")] public string ChannelId { get; set; }
+
+        /// <summary>
         /// Do not use the standard class constructor.
         /// Instead, use the static Create() method to properly create an instance of the secrets class
         /// </summary>
