@@ -20,7 +20,7 @@ namespace MoviesBot
                         var msg = update.Message;
                         var chat = msg.Chat;
                         
-                        if(msg.Text == START_COMMAND) StartHandler(bot, chat);
+                        if(msg.Text?.ToLower() == START_COMMAND) StartHandler(bot, chat);
                         break;
                 }
             }

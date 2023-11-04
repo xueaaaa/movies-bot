@@ -30,7 +30,7 @@ namespace MoviesBot
             var me = await _bot.GetMeAsync();
             Logger.Print(new Log($"{me.FirstName} successfully launched", LogLevel.Info));
 
-            await Task.Delay(-1);
+            Console.ReadLine();
         }
     }
 }
