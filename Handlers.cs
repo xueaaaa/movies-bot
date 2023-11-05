@@ -12,9 +12,11 @@ namespace MoviesBot
 
         private const string ADMIN_PANEL_COMMAND = "/admin";
         private const string ADD_MOVIE_COMMAND = "/add_movie";
+        private const string DELETE_MOVIE_COMMAND = "/delete_movie";
 
         private static bool _isWaitingForMovieCode = false;
-        private static bool _isWaitingForMovieData = false;
+        private static bool _isWaitingForAddMovieData = false;
+        private static bool _isWaitingForDeleteMovieData = false;
 
         internal static async Task Update(ITelegramBotClient bot, Update update, CancellationToken cancellationToken)
         {
@@ -36,12 +38,20 @@ namespace MoviesBot
                             _isWaitingForMovieCode = false;
                         }
 
-                        if (msg.Text == ADD_MOVIE_COMMAND) WaitForMovieDataHandler(bot, chat);
+                        if (msg.Text == ADD_MOVIE_COMMAND) WaitForAddMovieDataHandler(bot, chat);
 
-                        if (_isWaitingForMovieData)
+                        if (_isWaitingForAddMovieData)
                         {
                             AddMovieHandler(bot, chat, msg.Text);
-                            _isWaitingForMovieData = false;
+                            _isWaitingForAddMovieData = false;
+                        }
+
+                        if(msg.Text == DELETE_MOVIE_COMMAND) WaitForDeleteMovieDataHandler(bot, chat);
+
+                        if(_isWaitingForDeleteMovieData)
+                        {
+                            DeleteMovieHandler(bot, chat, Convert.ToInt32(msg.Text));
+                            _isWaitingForDeleteMovieData = false;
                         }
 
                         break;
@@ -58,7 +68,7 @@ namespace MoviesBot
 
         internal static async Task Error(ITelegramBotClient botClient, Exception ex, CancellationToken cancellationToken)
         {
-            Console.WriteLine(ex.Message);
+            Logger.Print(new Log(ex.Message, LogLevel.Error));
         }
 
         private static async void StartHandler(ITelegramBotClient bot, Chat chat)
@@ -127,7 +137,8 @@ namespace MoviesBot
             {
                 new KeyboardButton[]
                 {
-                    new KeyboardButton(ADD_MOVIE_COMMAND)
+                    new KeyboardButton(ADD_MOVIE_COMMAND),
+                    new KeyboardButton(DELETE_MOVIE_COMMAND)
                 }
             })
             {
@@ -137,7 +148,7 @@ namespace MoviesBot
             await bot.SendTextMessageAsync(chat.Id, "Доступные комманды:", replyMarkup: keyboard);
         }
 
-        private static async void WaitForMovieDataHandler(ITelegramBotClient bot, Chat chat)
+        private static async void WaitForAddMovieDataHandler(ITelegramBotClient bot, Chat chat)
         {
             if (!IsCreatorOrAdministrator(bot, chat).Result)
             {
@@ -146,7 +157,7 @@ namespace MoviesBot
             }
 
             await bot.SendTextMessageAsync(chat.Id, "Данные в формате: [Код фильма]\n[название фильма]\n[год выхода]\n[описание]\n[ссылка на просмотр]\n[ссылка на обложку]");
-            _isWaitingForMovieData = true;
+            _isWaitingForAddMovieData = true;
         }
 
         public static async void AddMovieHandler(ITelegramBotClient bot, Chat chat, string raw)
@@ -162,6 +173,31 @@ namespace MoviesBot
             Movie movie = new Movie(Convert.ToInt32(data[0]), data[1], data[3], Convert.ToInt32(data[2]), new Uri(data[4]), new Uri(data[5]));
             await Program.Ctx.AddEntityAsync(movie);
             await bot.SendTextMessageAsync(chat.Id, "Фильм добавлен.");
+        }
+
+        private static async void WaitForDeleteMovieDataHandler(ITelegramBotClient bot, Chat chat)
+        {
+            if (!IsCreatorOrAdministrator(bot, chat).Result)
+            {
+                await bot.SendTextMessageAsync(chat.Id, "⚠️ Вы не являетесь создателем для получения доступа к админ-панели.");
+                return;
+            }
+
+            await bot.SendTextMessageAsync(chat.Id, "Данные в формате: [Код фильма]");
+            _isWaitingForDeleteMovieData = true;
+        }
+
+        public static async void DeleteMovieHandler(ITelegramBotClient bot, Chat chat, int id)
+        {
+            if (!IsCreatorOrAdministrator(bot, chat).Result)
+            {
+                await bot.SendTextMessageAsync(chat.Id, "⚠️ Вы не являетесь создателем для получения доступа к админ-панели.");
+                return;
+            }
+
+            Program.Ctx.Remove(await Program.Ctx.Movies.FindAsync(id));
+            await Program.Ctx.SaveChangesAsync();
+            await bot.SendTextMessageAsync(chat.Id, "Фильм удален.");
         }
 
         private static async Task<bool> IsCreatorOrAdministrator(ITelegramBotClient bot, Chat chat)
