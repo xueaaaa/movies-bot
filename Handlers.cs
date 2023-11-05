@@ -10,7 +10,11 @@ namespace MoviesBot
         private const string START_COMMAND = "/start";
         private const string SEARCH_COMMAND = "🔎 Поиск";
 
+        private const string ADMIN_PANEL_COMMAND = "/admin";
+        private const string ADD_MOVIE_COMMAND = "/add_movie";
+
         private static bool _isWaitingForMovieCode = false;
+        private static bool _isWaitingForMovieData = false;
 
         internal static async Task Update(ITelegramBotClient bot, Update update, CancellationToken cancellationToken)
         {
@@ -22,14 +26,24 @@ namespace MoviesBot
                 switch (update.Type)
                 {
                     case UpdateType.Message:
-                        if(msg.Text?.ToLower() == START_COMMAND) StartHandler(bot, chat);
-                        if(msg.Text == SEARCH_COMMAND) WaitForCodeHandler(bot, chat);
+                        if (msg.Text == START_COMMAND) StartHandler(bot, chat);
+                        if (msg.Text == SEARCH_COMMAND) WaitForCodeHandler(bot, chat);
+                        if (msg.Text == ADMIN_PANEL_COMMAND) ShowAdminPanelHandler(bot, chat);
 
                         if (_isWaitingForMovieCode)
                         {
                             SearchHandler(bot, chat, Convert.ToInt32(msg.Text));
                             _isWaitingForMovieCode = false;
                         }
+
+                        if (msg.Text == ADD_MOVIE_COMMAND) WaitForMovieDataHandler(bot, chat);
+
+                        if (_isWaitingForMovieData)
+                        {
+                            AddMovieHandler(bot, chat, msg.Text);
+                            _isWaitingForMovieData = false;
+                        }
+
                         break;
                 }
             }
@@ -39,7 +53,7 @@ namespace MoviesBot
                 Logger.Print(log);
                 await bot.SendTextMessageAsync(chat.Id, "⚠️ Произошла ошибка. Попробуй еще раз.");
             }
-            
+
         }
 
         internal static async Task Error(ITelegramBotClient botClient, Exception ex, CancellationToken cancellationToken)
@@ -58,16 +72,16 @@ namespace MoviesBot
                     new KeyboardButton(SEARCH_COMMAND)
                 }
             })
-            { 
-                ResizeKeyboard = true 
+            {
+                ResizeKeyboard = true
             };
 
-            await bot.SendPhotoAsync(chat.Id, 
-                photo: InputFile.FromString($"https://espanarusa.com/files/autoupload/59/8/53/3wi1lz5h406343.jpg") , 
+            await bot.SendPhotoAsync(chat.Id,
+                photo: InputFile.FromString($"https://espanarusa.com/files/autoupload/59/8/53/3wi1lz5h406343.jpg"),
                 caption: "🙌 Привет!\n\n🍿 Этот бот предназначен для поиска фильмов.",
                 replyMarkup: keyboard);
         }
-        
+
         private static async void WaitForCodeHandler(ITelegramBotClient bot, Chat chat)
         {
             await bot.SendTextMessageAsync(chat.Id, "📌 Введи код фильма");
@@ -78,7 +92,7 @@ namespace MoviesBot
         {
             var member = await bot.GetChatMemberAsync(Program.Secrets.ChannelId, chat.Id);
 
-            if(member.Status == ChatMemberStatus.Left || member.Status == ChatMemberStatus.Kicked || member.Status == ChatMemberStatus.Restricted)
+            if (member.Status == ChatMemberStatus.Left || member.Status == ChatMemberStatus.Kicked || member.Status == ChatMemberStatus.Restricted)
             {
                 await bot.SendTextMessageAsync(chat.Id, "⚠️ Для поиска по коду необходимо быть подписаным на наш телеграм канал (https://t.me/movieskis)!");
                 return;
@@ -86,16 +100,78 @@ namespace MoviesBot
 
             var movie = Program.Ctx.Movies.FindAsync(code).Result;
 
-            if(movie == null)
+            if (movie == null)
             {
-                Logger.Print(new Log($"User {chat.Id} was trying to get the movie from the code {code}. It is possible that a movie with this code was deleted in the database for some reason", LogLevel.Warn));
+                Logger.Print(new Log($"User {chat.Id} was trying to get the movie from the code {code}. " +
+                    $"It is possible that a movie with this code was deleted in the database for some reason", LogLevel.Warn));
                 await bot.SendTextMessageAsync(chat.Id, "⚠️ Фильм с таким кодом не найден!");
                 return;
             }
 
-            await bot.SendPhotoAsync(chat.Id, 
+            await bot.SendPhotoAsync(chat.Id,
                 photo: InputFile.FromString(movie.Cover.ToString()),
                 caption: $"📽️ {movie.Name} ({movie.Year})\n\n✏️ {movie.Description}\n\n🔗 Ссылка для просмотра: {movie.Link}");
+        }
+
+        private static async void ShowAdminPanelHandler(ITelegramBotClient bot, Chat chat)
+        {
+            if (!IsCreatorOrAdministrator(bot, chat).Result)
+            {
+                await bot.SendTextMessageAsync(chat.Id, "⚠️ Вы не являетесь создателем для получения доступа к админ-панели.");
+                return;
+            }
+
+            Logger.Print(new Log($"User {chat.Id} accessed the admin panel", LogLevel.Warn));
+
+            var keyboard = new ReplyKeyboardMarkup(new List<KeyboardButton[]>
+            {
+                new KeyboardButton[]
+                {
+                    new KeyboardButton(ADD_MOVIE_COMMAND)
+                }
+            })
+            {
+                ResizeKeyboard = true
+            };
+
+            await bot.SendTextMessageAsync(chat.Id, "Доступные комманды:", replyMarkup: keyboard);
+        }
+
+        private static async void WaitForMovieDataHandler(ITelegramBotClient bot, Chat chat)
+        {
+            if (!IsCreatorOrAdministrator(bot, chat).Result)
+            {
+                await bot.SendTextMessageAsync(chat.Id, "⚠️ Вы не являетесь создателем для получения доступа к админ-панели.");
+                return;
+            }
+
+            await bot.SendTextMessageAsync(chat.Id, "Данные в формате: [Код фильма]\n[название фильма]\n[год выхода]\n[описание]\n[ссылка на просмотр]\n[ссылка на обложку]");
+            _isWaitingForMovieData = true;
+        }
+
+        public static async void AddMovieHandler(ITelegramBotClient bot, Chat chat, string raw)
+        {
+            if (!IsCreatorOrAdministrator(bot, chat).Result)
+            {
+                await bot.SendTextMessageAsync(chat.Id, "⚠️ Вы не являетесь создателем для получения доступа к админ-панели.");
+                return;
+            }
+
+            string[] data = raw.Split('\n');
+
+            Movie movie = new Movie(Convert.ToInt32(data[0]), data[1], data[3], Convert.ToInt32(data[2]), new Uri(data[4]), new Uri(data[5]));
+            await Program.Ctx.AddEntityAsync(movie);
+            await bot.SendTextMessageAsync(chat.Id, "Фильм добавлен.");
+        }
+
+        private static async Task<bool> IsCreatorOrAdministrator(ITelegramBotClient bot, Chat chat)
+        {
+            var member = await bot.GetChatMemberAsync(Program.Secrets.ChannelId, chat.Id);
+
+            if (member.Status != ChatMemberStatus.Creator)
+                return false;
+            else
+                return true;
         }
     }
 }
