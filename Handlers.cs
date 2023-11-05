@@ -104,7 +104,7 @@ namespace MoviesBot
 
             if (member.Status == ChatMemberStatus.Left || member.Status == ChatMemberStatus.Kicked || member.Status == ChatMemberStatus.Restricted)
             {
-                await bot.SendTextMessageAsync(chat.Id, "⚠️ Для поиска по коду необходимо быть подписаным на наш телеграм канал (https://t.me/movieskis)!");
+                await bot.SendTextMessageAsync(chat.Id, "⚠️ Для поиска по коду необходимо быть подписанным на наш телеграм канал (https://t.me/movieskis)!");
                 return;
             }
 
