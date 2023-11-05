@@ -1,4 +1,6 @@
-﻿namespace MoviesBot
+﻿using Telegram.Bot.Types;
+
+namespace MoviesBot
 {
     /// <summary>
     /// A basic bot object to work with. Represents a description of the movie searched by the code
@@ -38,6 +40,22 @@
             Year = year;
             Link = link;
             Cover = cover;
+        }
+
+        /// <summary>
+        /// Adds the current object to the database
+        /// </summary>
+        public async Task<int> Add()
+        {
+            return await Program.Ctx.AddEntityAsync(this);
+        }
+
+        /// <summary>
+        /// Deletes the current object from the database
+        /// </summary>
+        public async Task<int> Remove()
+        {
+            return await Program.Ctx.RemoveEntityAsync(this);
         }
     }
 }

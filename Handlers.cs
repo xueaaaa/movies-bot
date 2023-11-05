@@ -171,7 +171,7 @@ namespace MoviesBot
             string[] data = raw.Split('\n');
 
             Movie movie = new Movie(Convert.ToInt32(data[0]), data[1], data[3], Convert.ToInt32(data[2]), new Uri(data[4]), new Uri(data[5]));
-            await Program.Ctx.AddEntityAsync(movie);
+            await movie.Add();
             await bot.SendTextMessageAsync(chat.Id, "Фильм добавлен.");
         }
 
@@ -195,8 +195,7 @@ namespace MoviesBot
                 return;
             }
 
-            Program.Ctx.Remove(await Program.Ctx.Movies.FindAsync(id));
-            await Program.Ctx.SaveChangesAsync();
+            await (await Program.Ctx.Movies.FindAsync(id)).Remove();
             await bot.SendTextMessageAsync(chat.Id, "Фильм удален.");
         }
 
