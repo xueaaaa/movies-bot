@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using System.Timers;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -117,6 +118,8 @@ namespace MoviesBot
                 await bot.SendTextMessageAsync(chat.Id, "⚠️ Фильм с таким кодом не найден!");
                 return;
             }
+
+            Logger.Print(new Log($"User {chat.Id} got the movie with the code {code}.", LogLevel.Info));
 
             await bot.SendPhotoAsync(chat.Id,
                 photo: InputFile.FromString(movie.Cover.ToString()),
