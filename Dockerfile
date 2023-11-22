@@ -12,6 +12,6 @@ WORKDIR /app
 
 COPY --from=build /app/out .
 
-COPY secretfile.json .
+COPY secrets.json .
 
 CMD ["dotnet", "MoviesBot.dll"]
